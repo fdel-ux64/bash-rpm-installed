@@ -137,7 +137,7 @@ Or from the cloned repository:
 
 ## Related Projects
 
-- [fish-rpm-installed](https://github.com/YOURUSERNAME/fish-rpm-installed) - Fish shell version
+- [fish-rpm-installed](https://github.com/fdel-ux64/fish-rpm-installed) - Fish shell version
 
 ## License
 
