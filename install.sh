@@ -13,26 +13,55 @@ NC='\033[0m' # No Color
 INSTALL_DIR="${HOME}/.local/bin"
 COMPLETION_DIR="${HOME}/.local/share/bash-completion/completions"
 
+# GitHub repository
+GITHUB_USER="fdel-ux64"
+GITHUB_REPO="bash-rpm-installed"
+GITHUB_BRANCH="main"
+BASE_URL="https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}"
+
 echo "🚀 Installing rpm-installed..."
 
 # Create directories if they don't exist
 mkdir -p "$INSTALL_DIR"
 mkdir -p "$COMPLETION_DIR"
 
-# Install the main script
-if cp bin/rpm-installed "$INSTALL_DIR/rpm-installed"; then
-    chmod +x "$INSTALL_DIR/rpm-installed"
-    echo -e "${GREEN}✅ Installed rpm-installed to $INSTALL_DIR${NC}"
-else
-    echo -e "${RED}❌ Failed to install rpm-installed${NC}"
-    exit 1
-fi
+# Detect if running from git repo or via curl
+if [[ -f "bin/rpm-installed" ]]; then
+    # Local installation from git repo
+    echo "📦 Installing from local repository..."
+    
+    if cp bin/rpm-installed "$INSTALL_DIR/rpm-installed"; then
+        chmod +x "$INSTALL_DIR/rpm-installed"
+        echo -e "${GREEN}✅ Installed rpm-installed to $INSTALL_DIR${NC}"
+    else
+        echo -e "${RED}❌ Failed to install rpm-installed${NC}"
+        exit 1
+    fi
 
-# Install bash completion
-if cp completions/rpm-installed.bash "$COMPLETION_DIR/rpm-installed"; then
-    echo -e "${GREEN}✅ Installed bash completion to $COMPLETION_DIR${NC}"
+    if cp completions/rpm-installed.bash "$COMPLETION_DIR/rpm-installed"; then
+        echo -e "${GREEN}✅ Installed bash completion to $COMPLETION_DIR${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Warning: Could not install bash completion${NC}"
+    fi
 else
-    echo -e "${YELLOW}⚠️  Warning: Could not install bash completion${NC}"
+    # Remote installation via curl
+    echo "🌐 Downloading from GitHub..."
+    
+    # Download main script
+    if curl -fsSL "${BASE_URL}/bin/rpm-installed" -o "$INSTALL_DIR/rpm-installed"; then
+        chmod +x "$INSTALL_DIR/rpm-installed"
+        echo -e "${GREEN}✅ Installed rpm-installed to $INSTALL_DIR${NC}"
+    else
+        echo -e "${RED}❌ Failed to download rpm-installed${NC}"
+        exit 1
+    fi
+
+    # Download bash completion
+    if curl -fsSL "${BASE_URL}/completions/rpm-installed.bash" -o "$COMPLETION_DIR/rpm-installed"; then
+        echo -e "${GREEN}✅ Installed bash completion to $COMPLETION_DIR${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Warning: Could not download bash completion${NC}"
+    fi
 fi
 
 # Check if install dir is in PATH
