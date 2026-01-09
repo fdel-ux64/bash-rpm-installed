@@ -15,12 +15,12 @@ List installed RPM packages by install date with caching and filtering capabilit
 
 ### Quick Install (Recommended)
 ```bash
-curl -sSL https://raw.githubusercontent.com/YOURUSERNAME/bash-rpm-installed/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/fdel-ux64/bash-rpm-installed/main/install.sh | bash
 ```
 
 Or clone and install manually:
 ```bash
-git clone https://github.com/YOURUSERNAME/bash-rpm-installed.git
+git clone https://github.com/fdel-ux64/bash-rpm-installed.git
 cd bash-rpm-installed
 ./install.sh
 ```
@@ -114,6 +114,7 @@ Count output:
 ```bash
 # What did I install today?
 rpm-installed td
+rpm-installed today
 
 # How many packages did I install each day this week?
 rpm-installed count lw
@@ -127,7 +128,7 @@ rpm-installed count per-week | tail -20
 
 ## Uninstall
 ```bash
-curl -sSL https://raw.githubusercontent.com/YOURUSERNAME/bash-rpm-installed/main/uninstall.sh | bash
+curl -sSL https://raw.githubusercontent.com/fdel-ux64/bash-rpm-installed/main/uninstall.sh | bash
 ```
 
 Or from the cloned repository:
