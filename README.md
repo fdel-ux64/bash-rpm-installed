@@ -31,6 +31,19 @@ cd bash-rpm-installed
 - Bash 4.0+
 - Standard utilities: `awk`, `date`, `sort`
 
+### Project Structure
+```
+bash-rpm-installed/
+├── bin/
+│   └── rpm-installed          # Main executable script
+├── completions/
+│   └── rpm-installed.bash     # Bash completion script
+├── install.sh                 # Installation script
+├── uninstall.sh               # Uninstallation script
+├── LICENSE                    # License file
+└── README.md                  # This file
+```
+
 ## Usage
 
 ### Basic Commands
