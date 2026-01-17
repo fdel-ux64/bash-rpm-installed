@@ -1,24 +1,35 @@
 # bash-rpm-installed
 
-List installed RPM packages by install date with caching and filtering capabilities.
+A Bash script to list installed RPM packages by installation date, 
+with caching for faster repeated queries.
 
-## Features
+This script supports RPM-based distributions such as **Fedora, RHEL, CentOS, and openSUSE**.
+It provides fast package querying through an efficient caching mechanism.
 
-- 🚀 Fast caching mechanism for quick queries
-- 📅 Filter by time periods (today, yesterday, last week, etc.)
-- 📊 Count packages per day/week
-- 🎯 Custom date ranges with `since` and `until`
-- ⚡ Short aliases (td, yd, lw, tm, lm)
-- 🔄 Easy cache refresh
+---
 
-## Installation
+## ✨ Features
+
+* Distro check for RPM-based systems
+* Fast caching mechanism for quick queries
+* List installed RPM packages by date range
+* Common time-based shortcuts (today, yesterday, last-week, etc.)
+* Aggregated statistics (per-day / per-week)
+* Custom date ranges with `since` and `until`
+* Simple, dependency-free Bash implementation
+
+---
+
+## 📦 Installation
 
 ### Quick Install (Recommended)
+
 ```bash
 curl -sSL https://raw.githubusercontent.com/fdel-ux64/bash-rpm-installed/main/install.sh | bash
 ```
 
 Or clone and install manually:
+
 ```bash
 git clone https://github.com/fdel-ux64/bash-rpm-installed.git
 cd bash-rpm-installed
@@ -27,11 +38,12 @@ cd bash-rpm-installed
 
 ### Requirements
 
-- RPM-based system (Fedora, RHEL, CentOS, openSUSE, etc.)
-- Bash 4.0+
-- Standard utilities: `awk`, `date`, `sort`
+* RPM-based system (Fedora, RHEL, CentOS, openSUSE, etc.)
+* Bash 4.0+
+* Standard utilities: `awk`, `date`, `sort`
 
 ### Project Structure
+
 ```
 bash-rpm-installed/
 ├── bin/
@@ -44,9 +56,44 @@ bash-rpm-installed/
 └── README.md                  # This file
 ```
 
-## Usage
+---
 
-### Basic Commands
+## 🚀 Usage
+
+* `rpm-installed [OPTION]`
+* `rpm-installed count [OPTION]`
+* `rpm-installed since DATE [until DATE]`
+* `rpm-installed --refresh`
+* `rpm-installed --help`
+
+## Options
+
+| Option | Description |
+|--------|-------------|
+| `today` | Packages installed today |
+| `yesterday` | Packages installed yesterday |
+| `last-week` | Packages installed in the last 7 days |
+| `this-month` | Packages installed this calendar month |
+| `last-month` | Packages installed in the previous month |
+| `per-day` | Count packages per day |
+| `per-week` | Count packages per week |
+
+## Aliases
+
+| Alias | Expands to |
+|-------|------------|
+| `td` | today |
+| `yd` | yesterday |
+| `lw` | last-week |
+| `tm` | this-month |
+| `lm` | last-month |
+
+---
+
+## 💡 Examples
+
+### Basic Queries
+
 ```bash
 # List all installed packages (sorted by install date)
 rpm-installed
@@ -73,6 +120,7 @@ rpm-installed lm        # short alias
 ```
 
 ### Custom Date Ranges
+
 ```bash
 # Since a specific date
 rpm-installed since 2024-01-01
@@ -86,6 +134,7 @@ rpm-installed since "last monday" until today
 ```
 
 ### Counting & Statistics
+
 ```bash
 # Count packages installed today
 rpm-installed count today
@@ -104,6 +153,7 @@ rpm-installed count since 2024-01-01 until 2024-12-31
 ```
 
 ### Cache Management
+
 ```bash
 # Refresh the cache (rebuild from RPM database)
 rpm-installed --refresh
@@ -112,47 +162,56 @@ rpm-installed --refresh
 rpm-installed --help
 ```
 
-## Output Format
+---
+
+## 📊 Output Format
+
+Package listing:
+
 ```
 1704067200 (Mon Jan  1 00:00:00 2024): package-name-1.0.0-1.fc39.x86_64
 1704153600 (Tue Jan  2 00:00:00 2024): another-package-2.1.0-1.fc39.x86_64
 ```
+
 Count output:
+
 ```
 2024-01-01  15
 2024-01-02  8
 2024-01-03  23
 ```
-## Examples
-```bash
-# What did I install today?
-rpm-installed td
-rpm-installed today
 
-# How many packages did I install each day this week?
-rpm-installed count lw
+---
 
-# Show packages installed in December 2024
-rpm-installed since 2024-12-01 until 2025-01-01
+## 📝 Notes
 
-# Installation trends
-rpm-installed count per-week | tail -20
-```
+* This tool only works on RPM-based systems.
+* The cache can be rebuilt at any time using `--refresh`.
+* Designed to be fast, simple, and predictable.
+* Cache location: `~/.cache/rpm-installed/packages.cache`
 
-## Uninstall
+---
+
+## 🗑️ Uninstall
+
 ```bash
 curl -sSL https://raw.githubusercontent.com/fdel-ux64/bash-rpm-installed/main/uninstall.sh | bash
 ```
 
 Or from the cloned repository:
+
 ```bash
 ./uninstall.sh
 ```
 
-## Related Projects
+---
 
-- [fish-rpm-installed](https://github.com/fdel-ux64/fish-rpm-installed) - Fish shell version
+## 🔗 Related Projects
 
-## License
+* [fish-rpm-installed](https://github.com/fdel-ux64/fish-rpm-installed) - Fish shell version
+
+---
+
+## 📄 License
 
 MIT License - see [LICENSE](LICENSE) file for details
