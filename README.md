@@ -1,217 +1,303 @@
-# bash-rpm-installed
+# 🐚 bash-rpm-installed
 
-A Bash script to list installed RPM packages by installation date, 
-with caching for faster repeated queries.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Bash](https://img.shields.io/badge/bash-v4.0+-blue.svg)](https://www.gnu.org/software/bash/)
 
-This script supports RPM-based distributions such as **Fedora, RHEL, CentOS, and openSUSE**.
-It provides fast package querying through an efficient caching mechanism.
+A powerful Bash shell script to **list and analyze RPM packages** by installation date, with intelligent caching for blazing-fast repeated queries and beautiful formatted output.
+
+> 🚀 **Ever wondered what packages you installed last week?** Or need to audit recent system changes? This tool makes it effortless with a clean, formatted display.
 
 ---
 
-## ✨ Features
+## ✨ Why Use This?
 
-* Distro check for RPM-based systems
-* Fast caching mechanism for quick queries
-* List installed RPM packages by date range
-* Common time-based shortcuts (today, yesterday, last-week, etc.)
-* Aggregated statistics (per-day / per-week)
-* Custom date ranges with `since` and `until`
-* Simple, dependency-free Bash implementation
+- **⚡ Lightning Fast** - File-based caching for instant repeated queries
+- **📅 Date-Aware** - Filter packages by any date range or use convenient shortcuts
+- **📊 Analytics** - Built-in aggregation to see installation patterns (per-day/per-week)
+- **🎨 Beautiful Output** - Formatted headers, icons, and package counts
+- **🎯 Simple** - Minimal dependencies, pure Bash
+- **🔍 Smart** - Auto-detects RPM systems and uses consistent locale parsing
+- **📦 Portable** - Can be sourced or executed directly
+
+Perfect for system administrators, power users, and anyone managing RPM-based distributions like **Fedora**, **RHEL**, **CentOS**, **Rocky Linux**, **AlmaLinux**, and **openSUSE**.
 
 ---
 
 ## 📦 Installation
 
-### Quick Install (Recommended)
+### Using the Install Script (Recommended)
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/fdel-ux64/bash-rpm-installed/main/install.sh | bash
-```
-
-Or clone and install manually:
-
-```bash
+# Clone the repository
 git clone https://github.com/fdel-ux64/bash-rpm-installed.git
 cd bash-rpm-installed
+
+# Run the installer
 ./install.sh
 ```
 
-### Requirements
+This will:
+- Install the script to `~/.local/bin/rpm-installed`
+- Install Bash completions to `~/.local/share/bash-completion/completions/`
+- Add `~/.local/bin` to your PATH if needed
 
-* RPM-based system (Fedora, RHEL, CentOS, openSUSE, etc.)
-* Bash 4.0+
-* Standard utilities: `awk`, `date`, `sort`
+### Manual Installation
 
-### Project Structure
+```bash
+# Copy the script to a directory in your PATH
+cp bin/rpm-installed ~/.local/bin/
+chmod +x ~/.local/bin/rpm-installed
 
-```
-bash-rpm-installed/
-├── bin/
-│   └── rpm-installed          # Main executable script
-├── completions/
-│   └── rpm-installed.bash     # Bash completion script
-├── install.sh                 # Installation script
-├── uninstall.sh               # Uninstallation script
-├── LICENSE                    # License file
-└── README.md                  # This file
+# Optional: Install completions
+mkdir -p ~/.local/share/bash-completion/completions/
+cp completions/rpm-installed.bash ~/.local/share/bash-completion/completions/rpm-installed
 ```
 
 ---
 
-## 🚀 Usage
+## 🎯 Quick Start
 
-* `rpm-installed [OPTION]`
-* `rpm-installed count [OPTION]`
-* `rpm-installed since DATE [until DATE]`
-* `rpm-installed --refresh`
-* `rpm-installed --help`
+```bash
+# What did I install today?
+rpm-installed today
 
-## Options
+# Show packages from last week
+rpm-installed last-week
+
+# Count installations this month
+rpm-installed count this-month
+
+# Custom date range
+rpm-installed since 2025-01-01 until 2025-01-10
+
+# See installation patterns
+rpm-installed per-day
+```
+
+---
+
+## 🎨 Example Output
+
+```
+       📦 List of installed package(s): today
+       ╰─────────────────────────────────────────────────────────
+
+1768717505 (Sun 18 Jan 2026 07:25:05 AM EST): pipewire-pulseaudio-1.4.10-1.fc43.x86_64
+1768717505 (Sun 18 Jan 2026 07:25:05 AM EST): pipewire-plugin-libcamera-1.4.10-1.fc43.x86_64
+1768717504 (Sun 18 Jan 2026 07:25:04 AM EST): wireplumber-0.5.7-1.fc43.x86_64
+
+────────────────────────────────────
+🔢 Total number of package(s): 21
+```
+
+---
+
+## 📖 Usage
+
+### Basic Syntax
+
+```bash
+rpm-installed [OPTION]
+rpm-installed count [OPTION]
+rpm-installed since DATE [until DATE]
+rpm-installed --refresh
+rpm-installed --help
+```
+
+### Time-Based Shortcuts
+
+| Shortcut | Alias | Description |
+|----------|-------|-------------|
+| `today` | `td` | Packages installed today |
+| `yesterday` | `yd` | Packages installed yesterday |
+| `last-week` | `lw` | Last 7 days |
+| `this-month` | `tm` | Current calendar month |
+| `last-month` | `lm` | Previous calendar month |
+
+### Analytics Options
 
 | Option | Description |
 |--------|-------------|
-| `today` | Packages installed today |
-| `yesterday` | Packages installed yesterday |
-| `last-week` | Packages installed in the last 7 days |
-| `this-month` | Packages installed this calendar month |
-| `last-month` | Packages installed in the previous month |
-| `per-day` | Count packages per day |
-| `per-week` | Count packages per week |
+| `per-day` | Count packages grouped by day |
+| `per-week` | Count packages grouped by week |
 
-## Aliases
+### Special Flags
 
-| Alias | Expands to |
-|-------|------------|
-| `td` | today |
-| `yd` | yesterday |
-| `lw` | last-week |
-| `tm` | this-month |
-| `lm` | last-month |
+| Flag | Description |
+|------|-------------|
+| `--refresh` | Rebuild the cache from scratch |
+| `--help` | Show usage information |
 
 ---
 
 ## 💡 Examples
 
-### Basic Queries
+### Simple Queries with Formatted Output
 
 ```bash
-# List all installed packages (sorted by install date)
-rpm-installed
+# Using shortcuts - shows header, packages, and count
+rpm-installed td                    # Today's installations
+rpm-installed yd                    # Yesterday's installations
+rpm-installed lw                    # Last week
 
-# Packages installed today
-rpm-installed today
-rpm-installed td        # short alias
-
-# Packages installed yesterday
-rpm-installed yesterday
-rpm-installed yd        # short alias
-
-# Last 7 days
-rpm-installed last-week
-rpm-installed lw        # short alias
-
-# This calendar month
-rpm-installed this-month
-rpm-installed tm        # short alias
-
-# Last calendar month
-rpm-installed last-month
-rpm-installed lm        # short alias
+# With counts (no formatting, just statistics)
+rpm-installed count today           # How many packages today?
+rpm-installed count last-month      # Monthly installation count
 ```
 
-### Custom Date Ranges
+### Date Range Queries
 
 ```bash
-# Since a specific date
-rpm-installed since 2024-01-01
+# Specific date range with formatted output
+rpm-installed since 2025-12-01 until 2025-12-15
 
-# Between two dates
-rpm-installed since 2024-01-01 until 2024-12-31
+# Open-ended (everything since a date)
+rpm-installed since 2025-01-01
 
-# Using relative dates
-rpm-installed since "3 days ago"
-rpm-installed since "last monday" until today
+# Just a specific day
+rpm-installed since 2025-12-25 until 2025-12-25
 ```
 
-### Counting & Statistics
+### Analytics (Statistics Only)
 
 ```bash
-# Count packages installed today
-rpm-installed count today
+# Daily installation pattern
+rpm-installed per-day
 
-# Count per day for the last week
-rpm-installed count last-week
+# Output example:
+# 2025-01-15  5
+# 2025-01-16  12
+# 2025-01-17  3
 
-# Count packages per day (all time)
-rpm-installed count per-day
+# Weekly trends
+rpm-installed per-week
 
-# Count packages per week (all time)
-rpm-installed count per-week
-
-# Count for custom range
-rpm-installed count since 2024-01-01 until 2024-12-31
+# Output example:
+# 2025-W02  18
+# 2025-W03  25
 ```
 
 ### Cache Management
 
 ```bash
-# Refresh the cache (rebuild from RPM database)
+# Refresh the cache after system updates
 rpm-installed --refresh
-
-# Show help
-rpm-installed --help
 ```
 
 ---
 
-## 📊 Output Format
+## 🏗️ How It Works
 
-Package listing:
-
-```
-1704067200 (Mon Jan  1 00:00:00 2024): package-name-1.0.0-1.fc39.x86_64
-1704153600 (Tue Jan  2 00:00:00 2024): another-package-2.1.0-1.fc39.x86_64
-```
-
-Count output:
-
-```
-2024-01-01  15
-2024-01-02  8
-2024-01-03  23
-```
+1. **First Run**: Queries all installed RPM packages with installation dates using `rpm -qa`
+2. **Caching**: Stores results in `~/.cache/rpm_installed_cache` for instant subsequent queries
+3. **Locale Handling**: Forces US English locale (`LC_ALL=en_US.UTF-8`) for consistent date parsing across systems
+4. **Smart Filtering**: Uses `awk` for efficient date-based filtering
+5. **Beautiful Display**: Formats output with headers, icons, and package counts for better readability
 
 ---
 
-## 📝 Notes
+## 🎨 Output Formatting
 
-* This tool only works on RPM-based systems.
-* The cache can be rebuilt at any time using `--refresh`.
-* Designed to be fast, simple, and predictable.
-* Cache location: `~/.cache/rpm-installed/packages.cache`
+The script provides two types of output:
+
+### **Formatted Display** (default for package listings)
+- 📦 Section header with descriptive title
+- Clean underline separator
+- Package list with timestamps
+- 🔢 Total package count footer
+
+### **Statistics Mode** (count/per-day/per-week)
+- Plain text output for easy parsing
+- No formatting, just data
+- Perfect for scripting and analysis
 
 ---
 
-## 🗑️ Uninstall
+## 🔧 Requirements
+
+- **Bash** v4.0 or later (for `mapfile` support)
+- **RPM-based system** (Fedora, RHEL, CentOS, Rocky Linux, AlmaLinux, openSUSE, etc.)
+- Standard UNIX tools: `rpm`, `awk`, `date`, `sort`
+
+---
+
+## 🔄 Uninstallation
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/fdel-ux64/bash-rpm-installed/main/uninstall.sh | bash
-```
-
-Or from the cloned repository:
-
-```bash
+cd bash-rpm-installed
 ./uninstall.sh
 ```
+
+This will remove the script and completions from your system.
+
+---
+
+## 📁 Project Structure
+
+```
+bash-rpm-installed/
+├── bin/
+│   └── rpm-installed         # Main script
+├── completions/
+│   └── rpm-installed.bash    # Bash completion support
+├── install.sh                # Installation script
+├── uninstall.sh              # Uninstallation script
+├── LICENSE                   # MIT License
+└── README.md                 # This file
+```
+
+---
+
+## 🆕 Recent Updates
+
+**v2.0** - Enhanced Visual Output
+- ✨ Added formatted headers with package icon (📦)
+- ✨ Added total package count footer with counter icon (🔢)
+- ✨ Clean underline separators for better readability
+- ✨ Applied formatting to all time period options
+- ✨ Maintained statistics mode for data analysis
+- ✨ Improved distro detection with clear error messages
+- ✨ Added LC_ALL locale handling for consistent date parsing
 
 ---
 
 ## 🔗 Related Projects
 
-* [fish-rpm-installed](https://github.com/fdel-ux64/fish-rpm-installed) - Fish shell version
+- [fish-rpm-installed](https://github.com/fdel-ux64/fish-rpm-installed) - Fish shell version of this tool
+- [fish-config](https://github.com/fdel-ux64/fish-config) - Full Fish configuration with multiple utilities
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+
+- Report bugs
+- Suggest new features
+- Submit pull requests
+- Improve documentation
 
 ---
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+Created for the Bash shell community and RPM-based distribution users who want better visibility into their system's package history with a clean, modern interface.
+
+---
+
+## ⭐ Show Your Support
+
+If you find this useful, please consider:
+- ⭐ Starring this repository
+- 🐛 Reporting issues you encounter
+- 📢 Sharing it with others who might benefit
+
+---
+
+**Made with 🐚 and ❤️ for the Bash shell community**
