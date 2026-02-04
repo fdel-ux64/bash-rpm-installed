@@ -251,10 +251,9 @@ bash-rpm-installed/
 ## 🆕 Recent Updates
 
 **v2.0.1** – Bug Fix & Help Doc Update
-
-    🐛 Fixed help function EOF indentation to prevent parsing errors
-    🐛 Corrected today/yesterday package count to display actual installed packages
-    ⚙️ Minor improvements in alias handling and caching
+- 🐛 Fixed help function EOF indentation to prevent parsing errors
+- 🐛 Corrected today/yesterday package count to display actual installed packages
+- ⚙️ Minor improvements in alias handling and caching
 
 **v2.0** - Enhanced Visual Output
 - ✨ Added formatted headers with package icon (📦)
