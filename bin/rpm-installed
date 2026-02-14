@@ -5,7 +5,9 @@
 CACHE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/rpm_installed_cache"
 
 rpm-installed() {
+	# Convert first argument to lowercase for case-insensitive comparison
 	local arg="${1:-}"
+	[[ -n "$arg" ]] && arg=$(echo "$arg" | tr '[:upper:]' '[:lower:]')
 
 	# ---- Distro check ----
 	if ! command -v rpm &>/dev/null; then
@@ -25,35 +27,35 @@ rpm-installed() {
 
 __rpm_installed_help() {
 	cat <<-'EOF'
-rpm-installed — list installed RPM packages by install date
+	rpm-installed — list installed RPM packages by install date
 
-USAGE:
-  rpm-installed [OPTION]
-  rpm-installed since DATE [until DATE]
-  rpm-installed count [OPTION] (including 'since … until …')
-  rpm-installed --refresh  # rebuild cache
+	USAGE:
+	  rpm-installed [OPTION]
+	  rpm-installed since DATE [until DATE]
+	  rpm-installed count [OPTION] (including 'since … until …')
+	  rpm-installed --refresh  # rebuild cache
 
-OPTIONS:
-  today        Packages installed today
-  yesterday    Packages installed yesterday
-  last-week    Packages installed in the last 7 days
-  this-month   Packages installed this calendar month
-  last-month   Packages installed in the previous calendar month
+	OPTIONS:
+	  today        Packages installed today
+	  yesterday    Packages installed yesterday
+	  last-week    Packages installed in the last 7 days
+	  this-month   Packages installed this calendar month
+	  last-month   Packages installed in the previous calendar month
 
-ALIASES:
-  td  → today
-  yd  → yesterday
-  lw  → last-week
-  tm  → this-month
-  lm  → last-month
+	ALIASES:
+	  td  → today
+	  yd  → yesterday
+	  lw  → last-week
+	  tm  → this-month
+	  lm  → last-month
 
-COUNT / STATS:
-  rpm-installed count today
-  rpm-installed count last-week
-  rpm-installed count per-day
-  rpm-installed count per-week
-  rpm-installed count since DATE [until DATE]
-EOF
+	COUNT / STATS:
+	  rpm-installed count today
+	  rpm-installed count last-week
+	  rpm-installed count per-day
+	  rpm-installed count per-week
+	  rpm-installed count since DATE [until DATE]
+	EOF
 }
 
 
@@ -83,7 +85,7 @@ EOF
 
 	# ---- Backend helper ----
 	__instlist_rpm() {
-		LC_ALL=en_US.UTF-8 rpm -qa --qf '%{INSTALLTIME} (%{INSTALLTIME:date}): %{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n'
+		rpm -qa --qf '%{INSTALLTIME} (%{INSTALLTIME:date}): %{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n'
 	}
 
 	# ---- Caching ----
@@ -97,28 +99,37 @@ EOF
 	local since_epoch=""
 	local until_epoch=""
 
+	# Convert second argument to lowercase as well for count/stats
+	local arg2="${2:-}"
+	[[ -n "$arg2" ]] && arg2=$(echo "$arg2" | tr '[:upper:]' '[:lower:]')
+
 	if [[ "$arg" == "count" || "$arg" == "stats" ]]; then
 		count_mode=1
-		arg="${2:-}"
+		arg="$arg2"
 	fi
 
 	# ---- Detect since/until ----
 	for ((i = 1; i <= $#; i++)); do
-		if [[ "${!i}" == "since" ]]; then
+		local token="${!i}"
+		[[ -n "$token" ]] && token=$(echo "$token" | tr '[:upper:]' '[:lower:]')
+		
+		if [[ "$token" == "since" ]]; then
 			((idx = i + 1))
 			since_epoch=$(LC_ALL=en_US.UTF-8 date -d "${!idx} 00:00" +%s 2>/dev/null)
 			if [[ -z "$since_epoch" ]]; then
 				echo "❌ Invalid date: ${!idx}"
-				echo -e "   Expected a format understood by 'date -d' (e.g. YYYY-MM-DD)\n"
+				echo "   Expected a format understood by 'date -d' (e.g. YYYY-MM-DD)"
+				echo
 				__rpm_installed_help
 				return 1
 			fi
-		elif [[ "${!i}" == "until" ]]; then
+		elif [[ "$token" == "until" ]]; then
 			((idx = i + 1))
 			until_epoch=$(LC_ALL=en_US.UTF-8 date -d "${!idx} 00:00" +%s 2>/dev/null)
 			if [[ -z "$until_epoch" ]]; then
 				echo "❌ Invalid date: ${!idx}"
-				echo -e "   Expected a format understood by 'date -d' (e.g. YYYY-MM-DD)\n"
+				echo "   Expected a format understood by 'date -d' (e.g. YYYY-MM-DD)"
+				echo
 				__rpm_installed_help
 				return 1
 			fi
@@ -243,7 +254,8 @@ EOF
 		;;
 
 	*)
-		echo -e "❌ Invalid option: '$arg'\n"
+		echo "❌ Invalid option: '$arg'"
+		echo
 		__rpm_installed_help
 		return 1
 		;;
