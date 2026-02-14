@@ -250,10 +250,16 @@ bash-rpm-installed/
 
 ## 🆕 Recent Updates
 
+**v2.0.2 – Case-Insensitive Arguments & Consistency**
+- ✨ Added case-insensitive argument handling (TODAY, today, Today all work)
+- 🔧 Normalized all command arguments and keywords (count, since, until)
+- 🐛 Fixed argument parsing to match Fish shell function behavior
+- ⚙️  Improved consistency between Bash and Fish implementations
+
 **v2.0.1 – Bug Fix & Help Doc Update**
 - 🐛 Fixed help function EOF indentation to prevent parsing errors
 - 🐛 Corrected today/yesterday package count to display actual installed packages
-- ⚙️ Minor improvements in alias handling and caching
+- ⚙️  Minor improvements in alias handling and caching
 
 **v2.0 – Enhanced Visual Output**
 - ✨ Added formatted headers with package icon (📦)
