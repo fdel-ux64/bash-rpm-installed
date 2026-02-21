@@ -11,7 +11,7 @@ rpm-installed() {
 
 	# ---- Distro check ----
 	if ! command -v rpm &>/dev/null; then
-		echo "❌ This function requires RPM package manager"
+		echo " ❌ This function requires RPM package manager"
 		echo "   Current system does not appear to be RPM-based"
 		return 1
 	fi
@@ -19,7 +19,7 @@ rpm-installed() {
 	# ---- Refresh cache ----
 	if [[ "$arg" == "--refresh" ]]; then
 		rm -f "$CACHE_FILE"
-		echo "♻️ Cache cleared and will be rebuilt on next command."
+		echo " ♻️ Cache cleared and will be rebuilt on next command."
 		return 0
 	fi
 
@@ -85,7 +85,7 @@ __rpm_installed_help() {
 
 	# ---- Backend helper ----
 	__instlist_rpm() {
-		rpm -qa --qf '%{INSTALLTIME} (%{INSTALLTIME:date}): %{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n'
+		rpm -qa --qf ' %{INSTALLTIME} (%{INSTALLTIME:date}): %{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n'
 	}
 
 	# ---- Caching ----
@@ -117,7 +117,7 @@ __rpm_installed_help() {
 			((idx = i + 1))
 			since_epoch=$(LC_ALL=en_US.UTF-8 date -d "${!idx} 00:00" +%s 2>/dev/null)
 			if [[ -z "$since_epoch" ]]; then
-				echo "❌ Invalid date: ${!idx}"
+				echo " ❌ Invalid date: ${!idx}"
 				echo "   Expected a format understood by 'date -d' (e.g. YYYY-MM-DD)"
 				echo
 				__rpm_installed_help
@@ -127,7 +127,7 @@ __rpm_installed_help() {
 			((idx = i + 1))
 			until_epoch=$(LC_ALL=en_US.UTF-8 date -d "${!idx} 00:00" +%s 2>/dev/null)
 			if [[ -z "$until_epoch" ]]; then
-				echo "❌ Invalid date: ${!idx}"
+				echo " ❌ Invalid date: ${!idx}"
 				echo "   Expected a format understood by 'date -d' (e.g. YYYY-MM-DD)"
 				echo
 				__rpm_installed_help
@@ -152,8 +152,8 @@ __rpm_installed_help() {
 		local pkg_count=${#packages[@]}
 
 		if [[ -n "$title" ]]; then
-			echo -e "\n       📦 List of installed package(s): $title"
-			echo "       ╰─────────────────────────────────────────────────────────"
+			echo -e "\n     📦 List of installed package(s): $title"
+			echo "     ╰─────────────────────────────────────────────────────────"
 			echo
 		fi
 
@@ -162,8 +162,8 @@ __rpm_installed_help() {
 		done
 
 		if [[ -n "$title" ]]; then
-			echo -e "\n────────────────────────────────────"
-			echo -e "🔢 Total number of package(s): $pkg_count\n"
+			echo -e "\n ────────────────────────────────────"
+			echo -e " 🔢 Total number of package(s): $pkg_count\n"
 		fi
 	}
 
@@ -254,7 +254,7 @@ __rpm_installed_help() {
 		;;
 
 	*)
-		echo "❌ Invalid option: '$arg'"
+		echo " ❌ Invalid option: '$arg'"
 		echo
 		__rpm_installed_help
 		return 1
