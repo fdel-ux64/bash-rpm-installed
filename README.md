@@ -1,21 +1,21 @@
 # 🐚 bash-rpm-installed
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Bash](https://img.shields.io/badge/bash-v4.0+-blue.svg)](https://www.gnu.org/software/bash/)
+[![Bash](https://img.shields.io/badge/bash-v3.1+-blue.svg)](https://www.gnu.org/software/bash/)
 
-A powerful Bash shell script to **list and analyze RPM packages** by installation date, with intelligent caching for blazing-fast repeated queries and beautiful formatted output.
+A Bash shell script to **list and analyze RPM packages** by installation date, with file-based caching for fast repeated queries and formatted output.
 
 > 🚀 **Ever wondered what packages you installed last week?** Or need to audit recent system changes? This tool makes it effortless with a clean, formatted display.
 
 ---
 
-## ✨ Why Use This?
+## ✨ Features
 
-- **⚡ Lightning Fast** - File-based caching for instant repeated queries
+- **⚡ Fast** - File-based caching for instant repeated queries after the first run
 - **📅 Date-Aware** - Filter packages by any date range or use convenient shortcuts
 - **📊 Analytics** - Built-in aggregation to see installation patterns (per-day/per-week)
-- **🎨 Beautiful Output** - Formatted headers, icons, and package counts
-- **🎯 Simple** - Minimal dependencies, pure Bash
+- **🎨 Formatted Output** - Headers, icons, and package counts
+- **🎯 Simple** - No additional dependencies beyond standard RPM system tools
 - **🔍 Smart** - Auto-detects RPM systems and uses consistent locale parsing
 - **📦 Portable** - Can be sourced or executed directly
 
@@ -82,9 +82,9 @@ rpm-installed per-day
      📦 List of installed package(s): today
      ╰─────────────────────────────────────────────────────────
 
- 1768717505 (Sun 18 Jan 2026 07:25:05 AM EST): pipewire-pulseaudio-1.4.10-1.fc43.x86_64
- 1768717505 (Sun 18 Jan 2026 07:25:05 AM EST): pipewire-plugin-libcamera-1.4.10-1.fc43.x86_64
- 1768717504 (Sun 18 Jan 2026 07:25:04 AM EST): wireplumber-0.5.7-1.fc43.x86_64
+ 2026-01-18 07:25:05: pipewire-pulseaudio-1.4.10-1.fc43.x86_64
+ 2026-01-18 07:25:05: pipewire-plugin-libcamera-1.4.10-1.fc43.x86_64
+ 2026-01-18 07:25:04: wireplumber-0.5.7-1.fc43.x86_64
 
  ────────────────────────────────────
  🔢 Total number of package(s): 3
@@ -140,6 +140,10 @@ rpm-installed td                    # Today's installations
 rpm-installed yd                    # Yesterday's installations
 rpm-installed lw                    # Last week
 
+# Aliases also work with count
+rpm-installed count td              # Count today's installations
+rpm-installed count lw              # Count last week's installations
+
 # With counts (no formatting, just statistics)
 rpm-installed count today           # How many packages today?
 rpm-installed count last-month      # Monthly installation count
@@ -154,7 +158,10 @@ rpm-installed since 2025-12-01 until 2025-12-15
 # Open-ended (everything since a date)
 rpm-installed since 2025-01-01
 
-# Just a specific day
+# until-only (everything up to a date)
+rpm-installed until 2025-06-01
+
+# A single specific day (until is inclusive of the specified date)
 rpm-installed since 2025-12-25 until 2025-12-25
 ```
 
@@ -180,7 +187,7 @@ rpm-installed per-week
 ### Cache Management
 
 ```bash
-# Refresh the cache after system updates
+# Refresh the cache after installing packages mid-session
 rpm-installed --refresh
 ```
 
@@ -189,10 +196,16 @@ rpm-installed --refresh
 ## 🏗️ How It Works
 
 1. **First Run**: Queries all installed RPM packages with installation dates using `rpm -qa`
-2. **Caching**: Stores results in `~/.cache/rpm_installed_cache` for instant subsequent queries
+2. **Caching**: Stores results in `${XDG_CACHE_HOME:-~/.cache}/rpm_installed_cache` for fast subsequent queries — XDG base directory is respected
 3. **Locale Handling**: Forces US English locale (`LC_ALL=en_US.UTF-8`) for consistent date parsing across systems
 4. **Smart Filtering**: Uses `awk` for efficient date-based filtering
-5. **Beautiful Display**: Formats output with headers, icons, and package counts for better readability
+5. **Formatted Display**: Outputs headers, icons, and package counts for readability
+
+### ⚠️ Cache Behavior
+
+The cache is stored on disk and persists across shell sessions. If you install or remove packages during a session, results will not reflect those changes until you run `rpm-installed --refresh`. This is intentional — automatic invalidation behavior may vary by distro in a future release.
+
+The cache write is atomic (via a temp file + `mv`) to prevent corruption if two terminals hit a cold cache simultaneously.
 
 ---
 
@@ -215,9 +228,9 @@ The script provides two types of output:
 
 ## 🔧 Requirements
 
-- **Bash** v4.0 or later (for `mapfile` support)
+- **Bash** v3.1 or later
 - **RPM-based system** (Fedora, RHEL, CentOS, Rocky Linux, AlmaLinux, openSUSE, etc.)
-- Standard UNIX tools: `rpm`, `awk`, `date`, `sort`
+- Standard system tools: `rpm`, `awk`, `date`, `sort`
 
 ---
 
@@ -248,18 +261,32 @@ bash-rpm-installed/
 
 ---
 
-## 🆕 Recent Updates
+## 🆕 Changelog
+
+**v2.1.0 – Bug Fixes**
+- 🐛 Fixed `until`-only queries being silently ignored (only worked when paired with `since`)
+- 🐛 Fixed `until DATE` off-by-one: specified date is now inclusive
+- 🐛 Fixed `last-week` and `this-month` having no upper time bound (future-dated packages could appear)
+- 🐛 Fixed `count per-day` and `count per-week` silently ignoring the `count` prefix
+- 🐛 Fixed alias shortcuts (e.g. `count td`) not resolving after `count` mode shift
+- 🐛 Fixed `CACHE_FILE` global variable pollution when script is sourced — now scoped and namespaced
+- 🐛 Fixed cache race condition — atomic write via `mktemp` + `mv`
+- 🐛 Fixed `local var=$(cmd)` pattern throughout — `local` swallowed exit codes, date failures were silent
+- 🐛 Fixed missing bounds check when `since` or `until` is used without a following date argument
+- 🐛 Fixed nested function definitions leaking to global scope on every call
+- 🐛 Replaced `mapfile` with portable `while IFS= read -r` loop — no longer requires bash 4+
+- 🐛 Removed leading space from `rpm --qf` format string
 
 **v2.0.2 – Case-Insensitive Arguments & Consistency**
 - ✨ Added case-insensitive argument handling (TODAY, today, Today all work)
 - 🔧 Normalized all command arguments and keywords (count, since, until)
 - 🐛 Fixed argument parsing to match Fish shell function behavior
-- ⚙️  Improved consistency between Bash and Fish implementations
+- ⚙️ Improved consistency between Bash and Fish implementations
 
 **v2.0.1 – Bug Fix & Help Doc Update**
 - 🐛 Fixed help function EOF indentation to prevent parsing errors
 - 🐛 Corrected today/yesterday package count to display actual installed packages
-- ⚙️  Minor improvements in alias handling and caching
+- ⚙️ Minor improvements in alias handling and caching
 
 **v2.0 – Enhanced Visual Output**
 - ✨ Added formatted headers with package icon (📦)
@@ -279,8 +306,16 @@ bash-rpm-installed/
 
 ## 🔗 Related Projects
 
-- [fish-rpm-installed](https://github.com/fdel-ux64/fish-rpm-installed) - Fish shell version of this tool
+- [fish-rpm-installed](https://github.com/fdel-ux64/fish-rpm-installed) - Fish shell version of this tool — keep versions in sync, both share the same fix history
 - [fish-config](https://github.com/fdel-ux64/fish-config) - Full Fish configuration with multiple utilities
+
+---
+
+## ⚠️ Known Limitations
+
+- Cache persists on disk and must be manually refreshed with `--refresh` after mid-session package changes
+- `date -d` requires GNU date — standard on Linux, not available on macOS or BSD without `coreutils`
+- Cache invalidation strategy may differ between distros in a future release
 
 ---
 
@@ -303,7 +338,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ## 🙏 Acknowledgments
 
-Created for the Bash shell community and RPM-based distribution users who want better visibility into their system's package history with a clean, modern interface.
+Created for the Bash shell community and RPM-based distribution users who want better visibility into their system's package history.
 
 ---
 
