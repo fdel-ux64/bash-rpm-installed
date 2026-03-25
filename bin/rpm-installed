@@ -5,6 +5,8 @@
 # ---- Global helpers — defined once, outside main function ----
 # FIX: moved out of rpm-installed to prevent redefinition on every call
 
+RPM_SUMMARY_THRESHOLD=25
+
 __rpm_installed_help() {
     cat <<-'EOF'
 	rpm-installed — list installed RPM packages by install date
@@ -39,10 +41,10 @@ __rpm_installed_help() {
 }
 
 __instlist_rpm() {
-    rpm -qa --qf '%{INSTALLTIME} (%{INSTALLTIME:date}): %{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n'  # FIX: removed leading space
+    rpm -qa --qf '%{INSTALLTIME} (%{INSTALLTIME:date}): %{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n'
 }
 
-__display_rpm_packages() {  # FIX: renamed to avoid collision with other scripts
+__display_rpm_packages() {
     local title="$1"
     shift
     local -a packages=("$@")
@@ -51,13 +53,13 @@ __display_rpm_packages() {  # FIX: renamed to avoid collision with other scripts
     if [[ $pkg_count -eq 0 ]]; then
         echo
         echo "       📭 No packages installed: $title"
-        echo "          Try: rpm-installed last-week  or  rpm-installed this-month"  # FIX: correct function name
+        echo "          Try: rpm-installed last-week  or  rpm-installed this-month"
         echo
         return
     fi
 
     if [[ -n "$title" ]]; then
-        printf "\n     📦 List of installed package(s): %s\n" "$title"  # FIX: printf over echo -e
+        printf "\n     📦 List of installed package(s): %s\n" "$title"
         echo "     ╰─────────────────────────────────────────────────────────"
         echo
     fi
@@ -67,15 +69,17 @@ __display_rpm_packages() {  # FIX: renamed to avoid collision with other scripts
     done
 
     if [[ -n "$title" ]]; then
-        printf "\n ────────────────────────────────────\n"              # FIX: printf over echo -e
-        printf " 🔢 Total number of package(s): %d\n\n" "$pkg_count"
+        printf "\n ────────────────────────────────────\n"
+        printf " 🔢 Total number of package(s): %d\n" "$pkg_count"
+        if (( pkg_count > RPM_SUMMARY_THRESHOLD )); then
+            printf " ↑  Showing %d package(s) installed: %s\n" "$pkg_count" "$title"
+        fi
+        printf "\n"
     fi
 }
 
 
 rpm-installed() {
-    # FIX: CACHE_FILE moved inside function and namespaced to avoid
-    # polluting global environment when script is sourced
     local RPM_INSTALLED_CACHE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/rpm_installed_cache"
 
     # ---- Distro check ----
@@ -102,8 +106,6 @@ rpm-installed() {
     fi
 
     # ---- Build cache if missing ----
-    # FIX: atomic write via temp file prevents race condition when two
-    # terminals hit a cold cache simultaneously
     if [[ ! -f "$RPM_INSTALLED_CACHE_FILE" ]]; then
         mkdir -p "$(dirname "$RPM_INSTALLED_CACHE_FILE")"
         local tmp_cache
@@ -132,7 +134,6 @@ rpm-installed() {
     if [[ "$arg" == "count" || "$arg" == "stats" ]]; then
         count_mode=1
         arg="$arg2"
-        # FIX: re-normalize alias after shift
         case "$arg" in
             td) arg="today" ;;
             yd) arg="yesterday" ;;
@@ -143,14 +144,12 @@ rpm-installed() {
     fi
 
     # ---- Time boundaries ----
-    # FIX: declare separately from assignment so errors aren't swallowed
-    # by local's always-zero exit code
     local today_start tomorrow_start yesterday_start
     local last_week_start this_month_start last_month_start
-    today_start=$(LC_ALL=en_US.UTF-8     date -d 'today 00:00'                   +%s)
-    tomorrow_start=$(LC_ALL=en_US.UTF-8  date -d 'tomorrow 00:00'                +%s)
-    yesterday_start=$(LC_ALL=en_US.UTF-8 date -d 'yesterday 00:00'               +%s)
-    last_week_start=$(LC_ALL=en_US.UTF-8 date -d '7 days ago 00:00'              +%s)
+    today_start=$(LC_ALL=en_US.UTF-8      date -d 'today 00:00'                  +%s)
+    tomorrow_start=$(LC_ALL=en_US.UTF-8   date -d 'tomorrow 00:00'               +%s)
+    yesterday_start=$(LC_ALL=en_US.UTF-8  date -d 'yesterday 00:00'              +%s)
+    last_week_start=$(LC_ALL=en_US.UTF-8  date -d '7 days ago 00:00'             +%s)
     this_month_start=$(LC_ALL=en_US.UTF-8 date -d "$(date +%Y-%m-01)"            +%s)
     last_month_start=$(LC_ALL=en_US.UTF-8 date -d "$(date +%Y-%m-01) -1 month"   +%s)
 
@@ -164,9 +163,9 @@ rpm-installed() {
         yesterday)
             s=$yesterday_start;  e=$today_start ;;
         last-week)
-            s=$last_week_start;  e=$today_start ;;    # FIX: added upper bound
+            s=$last_week_start;  e=$today_start ;;
         this-month)
-            s=$this_month_start; e=$tomorrow_start ;; # FIX: added upper bound
+            s=$this_month_start; e=$tomorrow_start ;;
         last-month)
             s=$last_month_start; e=$this_month_start ;;
         per-day)
@@ -194,10 +193,7 @@ rpm-installed() {
             return 1 ;;
     esac
 
-    # ---- since / until override — writes directly into s and e ----
-    # FIX: until-only queries now work; previously ignored if since was absent
-    # FIX: until uses +1 day to be inclusive of the specified date
-    # FIX: explicit bounds check before dereferencing ${!idx}
+    # ---- since / until override ----
     local since_epoch="" until_epoch=""
     local i idx token
     for ((i = 1; i <= $#; i++)); do
@@ -206,7 +202,7 @@ rpm-installed() {
 
         if [[ "$token" == "since" ]]; then
             ((idx = i + 1))
-            if (( idx > $# )); then                    # FIX: bounds check
+            if (( idx > $# )); then
                 echo "❌ 'since' requires a date argument" >&2
                 return 1
             fi
@@ -220,11 +216,10 @@ rpm-installed() {
 
         elif [[ "$token" == "until" ]]; then
             ((idx = i + 1))
-            if (( idx > $# )); then                    # FIX: bounds check
+            if (( idx > $# )); then
                 echo "❌ 'until' requires a date argument" >&2
                 return 1
             fi
-            # FIX: +1 day makes until inclusive of the specified date
             until_epoch=$(LC_ALL=en_US.UTF-8 date -d "${!idx} +1 day 00:00" +%s 2>/dev/null)
             if [[ -z "$until_epoch" ]]; then
                 echo "❌ Invalid date for 'until': ${!idx}" >&2
@@ -236,7 +231,6 @@ rpm-installed() {
     done
 
     # ---- Execute ----
-    # FIX: unified execution path — no more duplicated since/until branch
     if [[ $count_mode -eq 1 ]]; then
         awk -v s="$s" -v e="$e" '
             $1>=s && (e=="" || $1<e) {
@@ -245,19 +239,16 @@ rpm-installed() {
             END { for (d in count) printf "%s  %d\n", d, count[d] }
         ' "$RPM_INSTALLED_CACHE_FILE" | sort
     else
-        # Build heading
         local heading="$arg"
         if [[ -n "$since_epoch" ]]; then
             heading="since $(LC_ALL=en_US.UTF-8 date -d "@$s" +%Y-%m-%d)"
             if [[ -n "$until_epoch" ]]; then
-                # FIX: display day before +1 so heading matches user's intent
                 local display_until
                 display_until=$(LC_ALL=en_US.UTF-8 date -d "@$e -1 day" +%Y-%m-%d)
                 heading="$heading until $display_until"
             fi
         fi
 
-        # FIX: mapfile replaced with portable while-read loop (bash 3+ safe)
         local -a result
         while IFS= read -r line; do
             result+=("$line")
