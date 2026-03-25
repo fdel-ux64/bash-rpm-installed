@@ -263,6 +263,10 @@ bash-rpm-installed/
 
 ## 🆕 Changelog
 
+**v2.1.1 – Footer Summary for Long Lists**
+- ✨ Added filter criteria repeat in footer when package count exceeds 25 items
+- ⚙️ Threshold controlled by `RPM_SUMMARY_THRESHOLD` variable (default: 25)
+
 **v2.1.0 – Bug Fixes**
 - 🐛 Fixed `until`-only queries being silently ignored (only worked when paired with `since`)
 - 🐛 Fixed `until DATE` off-by-one: specified date is now inclusive
