@@ -4,7 +4,7 @@
 
 # ---- Global helpers — defined once, outside main function ----
 
-RPM_SUMMARY_THRESHOLD=100
+RPM_SUMMARY_THRESHOLD=75
 
 __rpm_installed_help() {
     cat <<-'EOF'
@@ -211,6 +211,8 @@ rpm-installed() {
             awk '{count[strftime("%Y-W%V",$1)]++} END{for(w in count) printf "%s  %d\n", w, count[w]}' \
                 "$RPM_INSTALLED_CACHE_FILE" | sort
             return ;;
+        since|until)
+            ;;          # handled by the for-loop below — do nothing here
         '')
             s=0 ;;
         *)
