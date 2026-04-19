@@ -61,6 +61,9 @@ cp completions/rpm-installed.bash ~/.local/share/bash-completion/completions/rpm
 # What did I install today?
 rpm-installed today
 
+# Show packages from the last 3 days
+rpm-installed days 3
+
 # Show packages from last week
 rpm-installed last-week
 
@@ -93,18 +96,12 @@ rpm-installed per-day
     libtasn1-4.21.0-1.fc43.x86_64
 
  ────────────────────────────────────
- 🔢 Total: 8 packages
+ 🔢 Total: 8 packages — last-week
 ```
 
-When the result reaches or exceeds 75 packages, the filter criteria is repeated in the footer so context is preserved after scrolling:
+The filter label is always repeated in the footer, so context is preserved without having to scroll back up.
 
-```
- ────────────────────────────────────
- 🔢 Total: 90 packages
- ↑  Showing 90 packages installed: last-month
-```
-
-The threshold is controlled by the `RPM_SUMMARY_THRESHOLD` variable (default: `75`).
+When output exceeds the terminal height, the list is automatically paged with `less` — scroll freely, press `q` to exit. Paging is skipped when output is piped so scripting is unaffected.
 
 ---
 
@@ -114,6 +111,7 @@ The threshold is controlled by the `RPM_SUMMARY_THRESHOLD` variable (default: `7
 
 ```bash
 rpm-installed [OPTION]
+rpm-installed days N
 rpm-installed count [OPTION]
 rpm-installed since DATE [until DATE]
 rpm-installed --refresh
@@ -126,6 +124,7 @@ rpm-installed --help
 |----------|-------|-------------|
 | `today` | `td` | Packages installed today |
 | `yesterday` | `yd` | Packages installed yesterday |
+| `days N` | | Last N days, rolling window (today included) |
 | `last-week` | `lw` | Last 7 days |
 | `this-month` | `tm` | Current calendar month |
 | `last-month` | `lm` | Previous calendar month |
@@ -155,9 +154,12 @@ rpm-installed --help
 rpm-installed td                    # Today's installations
 rpm-installed yd                    # Yesterday's installations
 rpm-installed lw                    # Last week
+rpm-installed days 3                # Last 3 days (rolling window, today included)
+rpm-installed days 14               # Last 14 days
 
 # With counts (no formatting, just statistics)
 rpm-installed count today           # How many packages today?
+rpm-installed count days 5          # How many packages in the last 5 days?
 rpm-installed count last-month      # Monthly installation count
 ```
 
@@ -229,8 +231,8 @@ The script provides two types of output:
 - 📦 Section header with filter label
 - 📆 Date group headers with per-group package counts
 - Clean package name list under each date group
-- 🔢 Total package count footer with separator line
-- ↑ Filter reminder when total exceeds threshold (default: 100)
+- 🔢 Total package count footer with filter label always repeated — visible without scrolling up
+- Auto-paged with `less` when output exceeds terminal height; skipped when piped
 
 ### **Statistics Mode** (count/per-day/per-week)
 - Plain text output for easy parsing
@@ -275,6 +277,14 @@ bash-rpm-installed/
 ---
 
 ## 🆕 Changelog
+
+**v3.0.0 – Auto-Pager & Days Range**
+- ✨ Added `days N` subcommand: rolling window from N days ago 00:00 through end of today
+- ✨ Works in count mode: `rpm-installed count days 5`
+- ✨ Auto-page with `less -R` when output exceeds terminal height — scroll freely, `q` to exit
+- ✨ Pager skipped when stdout is piped — scripting unaffected
+- ✨ Filter label now always shown in footer — context visible without scrolling up
+- 🗑️ Removed conditional threshold footer (`RPM_SUMMARY_THRESHOLD`) — superseded by pager
 
 **v2.5.0 – Grouped Output & Updated Threshold**
 - ✨ Packages now grouped by installation date with 📆 date headers and per-group counts
