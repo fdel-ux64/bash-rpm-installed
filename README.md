@@ -97,6 +97,7 @@ rpm-installed per-day
 
  ────────────────────────────────────
  🔢 Total: 8 packages — last-week
+ 💾 Cache: file cache
 ```
 
 The filter label is always repeated in the footer, so context is preserved without having to scroll back up.
@@ -232,6 +233,7 @@ The script provides two types of output:
 - 📆 Date group headers with per-group package counts
 - Clean package name list under each date group
 - 🔢 Total package count footer with filter label always repeated — visible without scrolling up
+- 💾 Cache status shown in footer (`file cache`)
 - Auto-paged with `less` when output exceeds terminal height; skipped when piped
 
 ### **Statistics Mode** (count/per-day/per-week)
@@ -277,6 +279,9 @@ bash-rpm-installed/
 ---
 
 ## 🆕 Changelog
+
+**v3.1.0 – Cache Status in Footer**
+- ✨ Cache status now shown in footer on every listing (`💾 Cache: file cache`)
 
 **v3.0.0 – Auto-Pager & Days Range**
 - ✨ Added `days N` subcommand: rolling window from N days ago 00:00 through end of today
