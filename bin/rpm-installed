@@ -47,8 +47,9 @@ __instlist_rpm() {
 }
 
 __display_rpm_packages() {
-    local title="$1"
-    shift
+    local cache_status="$1"
+    local title="$2"
+    shift 2
     local -a packages=("$@")
     local pkg_count=${#packages[@]}
 
@@ -107,6 +108,7 @@ __display_rpm_packages() {
         # Title always repeated in footer so it's visible without scrolling up
         printf " 🔢 Total: %d package%s — %s\n" \
             "$pkg_count" "$( (( pkg_count == 1 )) && echo "" || echo "s" )" "$title"
+        printf " 💾 Cache: %s\n" "$cache_status"
         printf "\n"
     ) > "$tmpfile"
 
@@ -323,7 +325,7 @@ rpm-installed() {
         done < <(awk -v s="$s" -v e="$e" '$1>=s && (e=="" || $1<e)' \
                      "$RPM_INSTALLED_CACHE_FILE" | sort -n)
 
-        __display_rpm_packages "$heading" "${result[@]}"
+        __display_rpm_packages "file cache" "$heading" "${result[@]}"
     fi
 }
 
