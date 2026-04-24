@@ -93,7 +93,8 @@ __display_rpm_packages() {
 
             if [[ "$day" != "$current_date" ]]; then
                 run=0
-                for (( j = i; j < total && dates[j] == "$day"; j++ )); do
+                for (( j = i; j < total; j++ )); do
+                    [[ "${dates[$j]}" != "$day" ]] && break
                     (( run++ ))
                 done
                 current_date="$day"
@@ -164,6 +165,28 @@ rpm-installed() {
         }
     fi
 
+    # ---- Warn on future-dated entries ----
+    # RPM INSTALLTIME can be stamped with a wrong clock (e.g. NTP stepped the
+    # clock backward after zypper ran). Those packages exceed the current epoch
+    # and will never appear under 'today', 'yesterday', etc.
+    local __rpm_now
+    __rpm_now=$(date +%s)
+    local __rpm_future
+    __rpm_future=$(awk -v now="$__rpm_now" '$1 > now {count++} END {print count+0}' \
+        "$RPM_INSTALLED_CACHE_FILE")
+    if (( __rpm_future > 0 )); then
+        local __rpm_future_oldest
+        __rpm_future_oldest=$(awk -v now="$__rpm_now" '$1 > now {print $1}' \
+            "$RPM_INSTALLED_CACHE_FILE" | sort -n | head -1 | \
+            xargs -I{} date -d @{} '+%Y-%m-%d %H:%M %Z')
+        echo "⚠️  $__rpm_future package(s) have future timestamps in the RPM database." >&2
+        echo "   Earliest affected: $__rpm_future_oldest" >&2
+        echo "   Likely cause: system clock was corrected by NTP after a zypper transaction." >&2
+        echo "   These packages won't appear under 'today' or 'yesterday'." >&2
+        echo "   Use: rpm-installed since YYYY-MM-DD  to find them." >&2
+        echo >&2
+    fi
+
     # ---- Alias normalization ----
     case "$arg" in
         td) arg="today" ;;
@@ -232,18 +255,10 @@ rpm-installed() {
             s=$(LC_ALL=en_US.UTF-8 date -d "$n_days days ago 00:00" +%s)
             e=$tomorrow_start ;;
         per-day)
-            if [[ $count_mode -eq 1 ]]; then
-                echo "❌ 'count per-day' is redundant — per-day already counts by day" >&2
-                return 1
-            fi
             awk '{count[strftime("%Y-%m-%d",$1)]++} END{for(d in count) printf "%s  %d\n", d, count[d]}' \
                 "$RPM_INSTALLED_CACHE_FILE" | sort
             return ;;
         per-week)
-            if [[ $count_mode -eq 1 ]]; then
-                echo "❌ 'count per-week' is redundant — per-week already counts by week" >&2
-                return 1
-            fi
             awk '{count[strftime("%Y-W%V",$1)]++} END{for(w in count) printf "%s  %d\n", w, count[w]}' \
                 "$RPM_INSTALLED_CACHE_FILE" | sort
             return ;;
