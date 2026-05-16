@@ -39,6 +39,11 @@ __rpm_installed_help() {
 	  rpm-installed count per-day
 	  rpm-installed count per-week
 	  rpm-installed count since DATE [until DATE]
+
+	PACKAGE SEARCH:
+	  rpm-installed package NAME        # exact name match
+	  rpm-installed package PATTERN     # glob, e.g. kern* or *lib*
+	  Note: unlike Fish shell, globs do not need quoting in Bash
 	EOF
 }
 
@@ -127,6 +132,85 @@ __display_rpm_packages() {
 }
 
 
+__display_rpm_package_search() {
+    local pattern="$1"
+    local cache_status="$2"
+    shift 2
+    local -a packages=("$@")
+    local pkg_count=${#packages[@]}
+
+    if [[ $pkg_count -eq 0 ]]; then
+        echo
+        echo "     📭 No install history found for '$pattern'"
+        echo "        The package may not be installed, or the name/pattern doesn't match."
+        echo
+        return
+    fi
+
+    local -a dates=() times=() names=()
+    local ts name day hm
+
+    for pkg in "${packages[@]}"; do
+        ts="${pkg%% *}"
+        name="${pkg#* }"
+        day=$(LC_ALL=en_US.UTF-8 date -d "@$ts" '+%a %Y-%m-%d' 2>/dev/null)
+        hm=$(LC_ALL=en_US.UTF-8  date -d "@$ts" '+%H:%M %Z'    2>/dev/null)
+        [[ -z "$day" ]] && day="unknown"
+        [[ -z "$hm"  ]] && hm="??:??"
+        dates+=("$day")
+        times+=("$hm")
+        names+=("$name")
+    done
+
+    local tmpfile
+    tmpfile=$(mktemp /tmp/rpm_installed.XXXXXX)
+
+    (
+        printf "\n    📦 Package history — %s\n\n" "$pattern"
+
+        local current_date=""
+        local total=${#names[@]}
+        local i j run
+
+        for (( i = 0; i < total; i++ )); do
+            day="${dates[$i]}"
+            hm="${times[$i]}"
+            name="${names[$i]}"
+
+            if [[ "$day" != "$current_date" ]]; then
+                run=0
+                for (( j = i; j < total; j++ )); do
+                    [[ "${dates[$j]}" != "$day" ]] && break
+                    (( run++ ))
+                done
+                current_date="$day"
+                printf " 📆 %s  \e[2m(%d package%s)\e[0m\n" \
+                    "$day" "$run" "$( (( run == 1 )) && echo "" || echo "s" )"
+            fi
+
+            printf "    %s  %s\n" "$hm" "$name"
+        done
+
+        printf "\n ────────────────────────────────────\n"
+        printf " 🔢 %d install record%s matching '%s'\n" \
+            "$pkg_count" "$( (( pkg_count == 1 )) && echo "" || echo "s" )" "$pattern"
+        printf " 💾 Cache: %s\n" "$cache_status"
+        printf "\n"
+    ) > "$tmpfile"
+
+    local term_lines="${LINES:-24}"
+    local file_lines
+    file_lines=$(wc -l < "$tmpfile")
+    if (( file_lines > term_lines )) && [ -t 1 ]; then
+        cat "$tmpfile" | less -R
+    else
+        cat "$tmpfile"
+    fi
+
+    rm -f "$tmpfile"
+}
+
+
 rpm-installed() {
     local RPM_INSTALLED_CACHE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/rpm_installed_cache"
 
@@ -195,6 +279,38 @@ rpm-installed() {
         tm) arg="this-month" ;;
         lm) arg="last-month" ;;
     esac
+
+    # ---- package search mode ----
+    if [[ "$arg" == "package" ]]; then
+        local raw_pattern="${2:-}"
+        if [[ -z "$raw_pattern" ]]; then
+            echo "❌ 'package' requires a name or pattern" >&2
+            echo "   Usage: rpm-installed package cups" >&2
+            echo "          rpm-installed package 'kern*'" >&2
+            return 1
+        fi
+
+        local -a matched=()
+        local ts nevra pkg_name hit
+
+        while IFS= read -r line; do
+            ts="${line%% *}"
+            nevra="${line#* }"
+            # Extract NAME: everything before the first -<digit> sequence
+            pkg_name=$(grep -oP '^.+?(?=-[0-9])' <<< "$nevra" 2>/dev/null)
+            [[ -z "$pkg_name" ]] && pkg_name="$nevra"   # fallback for gpg-pubkey etc.
+
+            # Match: use case for glob (fnmatch), exact string compare otherwise
+            hit=0
+            case "$pkg_name" in
+                $raw_pattern) hit=1 ;;
+            esac
+            [[ $hit -eq 1 ]] && matched+=("$line")
+        done < <(sort -n "$RPM_INSTALLED_CACHE_FILE")
+
+        __display_rpm_package_search "$raw_pattern" "file cache" "${matched[@]}"
+        return 0
+    fi
 
     # ---- count/stats mode: shift args ----
     local count_mode=0
