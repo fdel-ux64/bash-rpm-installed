@@ -13,6 +13,7 @@ __rpm_installed_help() {
 	USAGE:
 	  rpm-installed [OPTION]
 	  rpm-installed days N             # last N days (rolling window)
+	  rpm-installed on DATE            # exact date, e.g. on 2026-05-15
 	  rpm-installed since DATE [until DATE]
 	  rpm-installed count [OPTION] (including 'since … until …')
 	  rpm-installed --refresh  # rebuild cache
@@ -36,6 +37,7 @@ __rpm_installed_help() {
 	  rpm-installed count today
 	  rpm-installed count days 5
 	  rpm-installed count last-week
+	  rpm-installed count on DATE
 	  rpm-installed count per-day
 	  rpm-installed count per-week
 	  rpm-installed count since DATE [until DATE]
@@ -343,6 +345,7 @@ rpm-installed() {
     local s=0
     local e=""
     local n_days=0   # >0 when 'days N' was used; drives heading
+    local on_date="" # non-empty when 'on DATE' was used; drives heading
 
     case "$arg" in
         today)
@@ -370,6 +373,23 @@ rpm-installed() {
             n_days=$raw_n
             s=$(LC_ALL=en_US.UTF-8 date -d "$n_days days ago 00:00" +%s)
             e=$tomorrow_start ;;
+        on)
+            local raw_date_idx=$(( count_mode + 2 ))
+            local raw_date="${!raw_date_idx}"
+            if [[ -z "$raw_date" ]]; then
+                echo "❌ 'on' requires a date  →  rpm-installed on 2026-05-15" >&2
+                return 1
+            fi
+            local parsed_on
+            parsed_on=$(LC_ALL=en_US.UTF-8 date -d "$raw_date 00:00" +%s 2>/dev/null)
+            if [[ -z "$parsed_on" ]]; then
+                echo "❌ Invalid date for 'on': $raw_date" >&2
+                echo "   Expected a format understood by 'date -d' (e.g. YYYY-MM-DD)" >&2
+                return 1
+            fi
+            s=$parsed_on
+            e=$(LC_ALL=en_US.UTF-8 date -d "$raw_date +1 day 00:00" +%s)
+            on_date="$raw_date" ;;
         per-day)
             awk '{count[strftime("%Y-%m-%d",$1)]++} END{for(d in count) printf "%s  %d\n", d, count[d]}' \
                 "$RPM_INSTALLED_CACHE_FILE" | sort
@@ -378,8 +398,8 @@ rpm-installed() {
             awk '{count[strftime("%Y-W%V",$1)]++} END{for(w in count) printf "%s  %d\n", w, count[w]}' \
                 "$RPM_INSTALLED_CACHE_FILE" | sort
             return ;;
-        since|until)
-            ;;          # handled by the for-loop below — do nothing here
+        since|until|on)
+            ;;          # handled above or by the for-loop below — do nothing here
         '')
             s=0 ;;
         *)
@@ -439,14 +459,15 @@ rpm-installed() {
         ' "$RPM_INSTALLED_CACHE_FILE" | sort
     else
         local heading="$arg"
-        if (( n_days > 0 )); then
+        if [[ -n "$on_date" ]]; then
+            heading="$on_date"
+        elif (( n_days > 0 )); then
             heading="last $n_days days"
         elif [[ $freeform_date -eq 1 ]]; then
             heading="since $(LC_ALL=en_US.UTF-8 date -d "@$s" +%Y-%m-%d)"
             if [[ -n "$until_epoch" ]]; then
-                local display_until
-                display_until=$(LC_ALL=en_US.UTF-8 date -d "@$e -1 day" +%Y-%m-%d)
-                heading="$heading until $display_until"
+                local display_until=$(( e - 86400 ))
+                heading="$heading until $(LC_ALL=en_US.UTF-8 date -d "@$display_until" +%Y-%m-%d)"
             fi
         fi
 
