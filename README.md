@@ -78,6 +78,9 @@ rpm-installed since 2025-01-01 until 2025-01-10
 # Exact single date
 rpm-installed on 2026-05-15
 
+# Packages installed this calendar week
+rpm-installed this-week
+
 # See installation patterns
 rpm-installed per-day
 
@@ -165,6 +168,7 @@ rpm-installed --help
 | `yesterday`  | `yd`  | Packages installed yesterday                 |
 | `days N`     |       | Last N days, rolling window (today included) |
 | `on DATE`    |       | Exact single date — e.g. `on 2026-05-15`     |
+| `this-week`  | `tw`  | This calendar week, Mon → today              |
 | `last-week`  | `lw`  | Last 7 days                                  |
 | `this-month` | `tm`  | Current calendar month                       |
 | `last-month` | `lm`  | Previous calendar month                      |
@@ -202,12 +206,14 @@ rpm-installed --help
 # Using shortcuts - shows grouped output with date headers and count
 rpm-installed td                    # Today's installations
 rpm-installed yd                    # Yesterday's installations
+rpm-installed tw                    # This calendar week (Mon → today)
 rpm-installed lw                    # Last week
 rpm-installed days 3                # Last 3 days (rolling window, today included)
 rpm-installed days 14               # Last 14 days
 
 # With counts (no formatting, just statistics)
 rpm-installed count today           # How many packages today?
+rpm-installed count this-week       # How many packages this week?
 rpm-installed count days 5          # How many packages in the last 5 days?
 rpm-installed count last-month      # Monthly installation count
 ```
@@ -354,6 +360,13 @@ bash-rpm-installed/
 ---
 
 ## 🆕 Changelog
+
+**v3.5.0 – this-week subcommand**
+
+- ✨ Added `this-week` (alias `tw`): ISO calendar week from Monday 00:00 through end of today
+- ✨ Heading shows explicit date range: `Mon 2026-05-25 → Thu 2026-05-28`
+- ✨ Works in count mode: `count this-week`
+- 📝 Ported from fish-rpm-installed v3.5 — in sync
 
 **v3.4.0 – on DATE subcommand & heading fix**
 
