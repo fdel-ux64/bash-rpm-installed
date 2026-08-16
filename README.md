@@ -1,32 +1,23 @@
-# 🐚 bash-rpm-installed
+# bash-rpm-installed
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Bash](https://img.shields.io/badge/bash-v3.1+-blue.svg)](https://www.gnu.org/software/bash/)
 
-A Bash shell script to **list and analyze RPM packages** by installation date, with file-based caching for fast repeated queries and formatted output.
-
-> 🚀 **Ever wondered what packages you installed last week?** Or need to audit recent system changes? This tool makes it effortless with a clean, date-grouped display.
+A Bash shell script to list and analyze RPM packages by installation date, with file-based caching for fast repeated queries and formatted output.
 
 ---
 
-## ✨ Features
+## Features
 
-- **⚡ Fast** - File-based caching for instant repeated queries after the first run
-- **📅 Date-Grouped** - Packages are grouped by installation date with per-group counts
-- **📊 Analytics** - Built-in aggregation to see installation patterns (per-day/per-week)
-- **🎨 Formatted Output** - Date headers with icons, package counts, and footer summary
-- **🎯 Simple** - No additional dependencies beyond standard RPM system tools
-- **🔍 Smart** - Auto-detects RPM systems and uses consistent locale parsing
-- **🔎 Package Search** - Look up the full install history of any package by exact name or glob pattern (`kern*`, `*lib*`)
-- **📦 Portable** - Can be sourced or executed directly
+File-based caching makes repeated queries instant after the first run. Packages are grouped by installation date with per-group counts, and there's built-in aggregation for installation patterns (per-day/per-week). Package search looks up the full install history of any package by exact name or glob pattern (`kern*`, `*lib*`). No additional dependencies beyond standard RPM system tools, and the script can be sourced or executed directly.
 
-Perfect for system administrators, power users, and anyone managing RPM-based distributions like **Fedora**, **RHEL**, **CentOS**, **Rocky Linux**, **AlmaLinux**, and **openSUSE**.
+Useful for Fedora, RHEL, CentOS, Rocky Linux, AlmaLinux, openSUSE, and other RPM-based distributions.
 
 ---
 
-## 📦 Installation
+## Installation
 
-### Using the Install Script (Recommended)
+### Using the Install Script
 
 ```bash
 # Clone the repository
@@ -57,7 +48,7 @@ cp completions/rpm-installed.bash ~/.local/share/bash-completion/completions/rpm
 
 ---
 
-## 🎯 Quick Start
+## Quick Start
 
 ```bash
 # What did I install today?
@@ -93,7 +84,7 @@ rpm-installed package kern*
 
 ---
 
-## 🎨 Example Output
+## Example Output
 
 ```
     📦 Installed packages — last-week
@@ -144,7 +135,7 @@ Package search groups results by date and shows install time to the minute. All 
 
 ---
 
-## 📖 Usage
+## Usage
 
 ### Basic Syntax
 
@@ -180,7 +171,7 @@ rpm-installed --help
 | `package NAME`    | Full install history for an exact package name         |
 | `package PATTERN` | Full install history with glob — e.g. `kern*`, `*lib*` |
 
-> **Note:** unlike the Fish shell version, glob patterns do **not** need quoting in Bash — `rpm-installed package kern*` works as-is.
+Unlike the Fish shell version, glob patterns don't need quoting in Bash, `rpm-installed package kern*` works as-is.
 
 ### Analytics Options
 
@@ -198,7 +189,7 @@ rpm-installed --help
 
 ---
 
-## 💡 Examples
+## Examples
 
 ### Simple Queries with Formatted Output
 
@@ -281,7 +272,7 @@ rpm-installed package '*lib*'      # anything with 'lib' in the name
 
 ---
 
-## 🏗️ How It Works
+## How It Works
 
 1. **First Run**: Queries all installed RPM packages with installation timestamps using `rpm -qa`
 2. **Caching**: Stores results in `${XDG_CACHE_HOME:-~/.cache}/rpm_installed_cache` for fast subsequent queries — XDG base directory is respected
@@ -289,7 +280,7 @@ rpm-installed package '*lib*'      # anything with 'lib' in the name
 4. **Smart Filtering**: Uses `awk` for efficient date-based filtering
 5. **Grouped Display**: Packages are grouped by installation date — 📆 date headers with per-group counts make long lists easy to scan
 
-### ⚠️ Cache Behavior
+### Cache Behavior
 
 The cache is stored on disk and persists across shell sessions. If you install or remove packages during a session, results will not reflect those changes until you run `rpm-installed --refresh`.
 
@@ -297,26 +288,26 @@ The cache write is atomic (via a temp file + `mv`) to prevent corruption if two 
 
 ---
 
-## 🎨 Output Formatting
+## Output Formatting
 
 The script provides two types of output:
 
-### **Formatted Display** (default for package listings)
+### Formatted Display (default for package listings)
 
-- 📦 Section header with filter label
-- 📆 Date group headers with per-group package counts
+- Section header with filter label
+- Date group headers with per-group package counts
 - Clean package name list under each date group
-- 🔢 Total package count footer with filter label always repeated — visible without scrolling up
-- 💾 Cache status shown in footer (`file cache`)
+- Total package count footer with filter label always repeated — visible without scrolling up
+- Cache status shown in footer (`file cache`)
 - Auto-paged with `less` when output exceeds terminal height; skipped when piped
 
-### **Package Search Display** (`package NAME` / `package PATTERN`)
+### Package Search Display (`package NAME` / `package PATTERN`)
 
 - Same date-grouped layout as above
 - Install time shown to the minute (e.g. `05:30 CEST`) — useful for spotting batch updates
 - Footer shows match count and the pattern used
 
-### **Statistics Mode** (count/per-day/per-week)
+### Statistics Mode (count/per-day/per-week)
 
 - Plain text output for easy parsing
 - No formatting, just data
@@ -324,7 +315,7 @@ The script provides two types of output:
 
 ---
 
-## 🔧 Requirements
+## Requirements
 
 - **Bash** v3.1 or later
 - **RPM-based system** (Fedora, RHEL, CentOS, Rocky Linux, AlmaLinux, openSUSE, etc.)
@@ -332,7 +323,7 @@ The script provides two types of output:
 
 ---
 
-## 🔄 Uninstallation
+## Uninstallation
 
 ```bash
 cd bash-rpm-installed
@@ -343,7 +334,7 @@ This will remove the script and completions from your system.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 bash-rpm-installed/
@@ -359,119 +350,119 @@ bash-rpm-installed/
 
 ---
 
-## 🆕 Changelog
+## Changelog
 
 **v3.5.0 – this-week subcommand**
 
-- ✨ Added `this-week` (alias `tw`): ISO calendar week from Monday 00:00 through end of today
-- ✨ Heading shows explicit date range: `Mon 2026-05-25 → Thu 2026-05-28`
-- ✨ Works in count mode: `count this-week`
-- 📝 Ported from fish-rpm-installed v3.5 — in sync
+- Added `this-week` (alias `tw`): ISO calendar week from Monday 00:00 through end of today
+- Heading shows explicit date range: `Mon 2026-05-25 → Thu 2026-05-28`
+- Works in count mode: `count this-week`
+- Ported from fish-rpm-installed v3.5 — in sync
 
 **v3.4.0 – on DATE subcommand & heading fix**
 
-- ✨ Added `on DATE` subcommand: exact single-date query — cleaner than `since DATE until DATE`
-- ✨ Works in count mode: `count on DATE`
-- 🐛 Fixed `since X until X` footer heading showing the next day (e.g. `until 2026-05-16` when `until 2026-05-15` was typed)
-- 📝 Ported from fish-rpm-installed v3.4 — in sync
+- Added `on DATE` subcommand: exact single-date query — cleaner than `since DATE until DATE`
+- Works in count mode: `count on DATE`
+- Fixed `since X until X` footer heading showing the next day (e.g. `until 2026-05-16` when `until 2026-05-15` was typed)
+- Ported from fish-rpm-installed v3.4 — in sync
 
 **v3.3.0 – Package Search**
 
-- ✨ Added `package NAME` subcommand: full install history for an exact package name
-- ✨ Added glob support: `package PATTERN` matches with `*`, `?` (e.g. `kern*`, `*lib*`)
-- ✨ Package search output shows install time to the minute, grouped by date
-- 📝 Ported from fish-rpm-installed v3.3 — in sync
+- Added `package NAME` subcommand: full install history for an exact package name
+- Added glob support: `package PATTERN` matches with `*`, `?` (e.g. `kern*`, `*lib*`)
+- Package search output shows install time to the minute, grouped by date
+- Ported from fish-rpm-installed v3.3 — in sync
 
 **v3.2.0 – Future-Timestamp Warning & Bug Fixes**
 
-- ✨ Detect and warn on future-dated RPM INSTALLTIME entries (NTP clock correction during transaction)
-- 🐛 Fixed `count per-day` and `count per-week` erroring when prefixed with `count`
+- Detect and warn on future-dated RPM INSTALLTIME entries (NTP clock correction during transaction)
+- Fixed `count per-day` and `count per-week` erroring when prefixed with `count`
 
 **v3.1.0 – Cache Status in Footer**
 
-- ✨ Cache status now shown in footer on every listing (`💾 Cache: file cache`)
+- Cache status now shown in footer on every listing (`💾 Cache: file cache`)
 
 **v3.0.0 – Auto-Pager & Days Range**
 
-- ✨ Added `days N` subcommand: rolling window from N days ago 00:00 through end of today
-- ✨ Works in count mode: `rpm-installed count days 5`
-- ✨ Auto-page with `less -R` when output exceeds terminal height — scroll freely, `q` to exit
-- ✨ Pager skipped when stdout is piped — scripting unaffected
-- ✨ Filter label now always shown in footer — context visible without scrolling up
-- 🗑️ Removed conditional threshold footer (`RPM_SUMMARY_THRESHOLD`) — superseded by pager
+- Added `days N` subcommand: rolling window from N days ago 00:00 through end of today
+- Works in count mode: `rpm-installed count days 5`
+- Auto-page with `less -R` when output exceeds terminal height — scroll freely, `q` to exit
+- Pager skipped when stdout is piped — scripting unaffected
+- Filter label now always shown in footer — context visible without scrolling up
+- Removed conditional threshold footer (`RPM_SUMMARY_THRESHOLD`) — superseded by pager
 
 **v2.5.0 – Grouped Output & Updated Threshold**
 
-- ✨ Packages now grouped by installation date with 📆 date headers and per-group counts
-- ✨ Redundant timestamp removed from each package line — cleaner, easier to scan
-- ✨ `--refresh` description clarified: clears the cache, caching stays enabled
-- ⚙️ Summary threshold raised from 25 to 100 (`RPM_SUMMARY_THRESHOLD`)
-- 📝 Updated footer format: `🔢 Total: N packages`
+- Packages now grouped by installation date with 📆 date headers and per-group counts
+- Redundant timestamp removed from each package line — cleaner, easier to scan
+- `--refresh` description clarified: clears the cache, caching stays enabled
+- Summary threshold raised from 25 to 100 (`RPM_SUMMARY_THRESHOLD`)
+- Updated footer format: `🔢 Total: N packages`
 
 **v2.1.1 – Footer Summary for Long Lists**
 
-- ✨ Added filter criteria repeat in footer when package count exceeds threshold
-- ⚙️ Threshold controlled by `RPM_SUMMARY_THRESHOLD` variable (default: 25)
+- Added filter criteria repeat in footer when package count exceeds threshold
+- Threshold controlled by `RPM_SUMMARY_THRESHOLD` variable (default: 25)
 
 **v2.1.0 – Bug Fixes**
 
-- 🐛 Fixed `until`-only queries being silently ignored (only worked when paired with `since`)
-- 🐛 Fixed `until DATE` off-by-one: specified date is now inclusive
-- 🐛 Fixed `last-week` and `this-month` having no upper time bound (future-dated packages could appear)
-- 🐛 Fixed `count per-day` and `count per-week` silently ignoring the `count` prefix
-- 🐛 Fixed alias shortcuts (e.g. `count td`) not resolving after `count` mode shift
-- 🐛 Fixed `CACHE_FILE` global variable pollution when script is sourced — now scoped and namespaced
-- 🐛 Fixed cache race condition — atomic write via `mktemp` + `mv`
-- 🐛 Fixed `local var=$(cmd)` pattern throughout — `local` swallowed exit codes, date failures were silent
-- 🐛 Fixed missing bounds check when `since` or `until` is used without a following date argument
-- 🐛 Fixed nested function definitions leaking to global scope on every call
-- 🐛 Replaced `mapfile` with portable `while IFS= read -r` loop — no longer requires bash 4+
-- 🐛 Removed leading space from `rpm --qf` format string
+- Fixed `until`-only queries being silently ignored (only worked when paired with `since`)
+- Fixed `until DATE` off-by-one: specified date is now inclusive
+- Fixed `last-week` and `this-month` having no upper time bound (future-dated packages could appear)
+- Fixed `count per-day` and `count per-week` silently ignoring the `count` prefix
+- Fixed alias shortcuts (e.g. `count td`) not resolving after `count` mode shift
+- Fixed `CACHE_FILE` global variable pollution when script is sourced — now scoped and namespaced
+- Fixed cache race condition — atomic write via `mktemp` + `mv`
+- Fixed `local var=$(cmd)` pattern throughout — `local` swallowed exit codes, date failures were silent
+- Fixed missing bounds check when `since` or `until` is used without a following date argument
+- Fixed nested function definitions leaking to global scope on every call
+- Replaced `mapfile` with portable `while IFS= read -r` loop — no longer requires bash 4+
+- Removed leading space from `rpm --qf` format string
 
 **v2.0.2 – Case-Insensitive Arguments & Consistency**
 
-- ✨ Added case-insensitive argument handling (TODAY, today, Today all work)
-- 🔧 Normalized all command arguments and keywords (count, since, until)
-- 🐛 Fixed argument parsing to match Fish shell function behavior
-- ⚙️ Improved consistency between Bash and Fish implementations
+- Added case-insensitive argument handling (TODAY, today, Today all work)
+- Normalized all command arguments and keywords (count, since, until)
+- Fixed argument parsing to match Fish shell function behavior
+- Improved consistency between Bash and Fish implementations
 
 **v2.0.1 – Bug Fix & Help Doc Update**
 
-- 🐛 Fixed help function EOF indentation to prevent parsing errors
-- 🐛 Corrected today/yesterday package count to display actual installed packages
-- ⚙️ Minor improvements in alias handling and caching
+- Fixed help function EOF indentation to prevent parsing errors
+- Corrected today/yesterday package count to display actual installed packages
+- Minor improvements in alias handling and caching
 
 **v2.0 – Enhanced Visual Output**
 
-- ✨ Added formatted headers with package icon (📦)
-- ✨ Added total package count footer with counter icon (🔢)
-- ✨ Clean underline separators for better readability
-- ✨ Applied formatting to all time period options
-- ✨ Maintained statistics mode for data analysis
-- ✨ Improved distro detection with clear error messages
-- ✨ Added LC_ALL locale handling for consistent date parsing
+- Added formatted headers with package icon (📦)
+- Added total package count footer with counter icon (🔢)
+- Clean underline separators for better readability
+- Applied formatting to all time period options
+- Maintained statistics mode for data analysis
+- Improved distro detection with clear error messages
+- Added LC_ALL locale handling for consistent date parsing
 
 **v1.0.0 – Initial Release**
 
-- 🚀 Initial release of `rpm-installed` to list installed RPM packages by install date
-- 📦 Supports filtering by today, yesterday, last week, this month, last month
-- ⚙️ Includes count/stats mode and alias shortcuts (td, yd, lw, tm, lm)
+- Initial release of `rpm-installed` to list installed RPM packages by install date
+- Supports filtering by today, yesterday, last week, this month, last month
+- Includes count/stats mode and alias shortcuts (td, yd, lw, tm, lm)
 
 ---
 
-## 🔗 Related Projects
+## Related Projects
 
 - [fish-rpm-installed](https://github.com/fdel-ux64/fish-rpm-installed) - Fish shell version of this tool — keep versions in sync, both share the same fix history
 - [fish-config](https://github.com/fdel-ux64/fish-config) - Full Fish configuration with multiple utilities
 
-## 🛠️ Development
+## Development
 
 This function is developed as part of [fish-config](https://github.com/fdel-ux64/fish-config).
 Feature requests and issues are tracked there.
 
 ---
 
-## ⚠️ Known Limitations
+## Known Limitations
 
 - Cache persists on disk and must be manually refreshed with `--refresh` after mid-session package changes
 - `date -d` requires GNU date — standard on Linux, not available on macOS or BSD without `coreutils`
@@ -479,37 +470,12 @@ Feature requests and issues are tracked there.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! Feel free to:
-
-- Report bugs
-- Suggest new features
-- Submit pull requests
-- Improve documentation
+Bug reports, feature suggestions, and pull requests are welcome.
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-Created for the Bash shell community and RPM-based distribution users who want better visibility into their system's package history.
-
----
-
-## ⭐ Show Your Support
-
-If you find this useful, please consider:
-
-- ⭐ Starring this repository
-- 🐛 Reporting issues you encounter
-- 📢 Sharing it with others who might benefit
-
----
-
-**Made with 🐚 and ❤️ for the Bash shell community**
+MIT, see the [LICENSE](LICENSE) file for details.
