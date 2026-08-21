@@ -80,6 +80,9 @@ rpm-installed package cups
 
 # Look up all kernel packages (no quoting needed in Bash)
 rpm-installed package kern*
+
+# Today's installations, with install time
+rpm-installed today --time
 ```
 
 ---
@@ -147,6 +150,7 @@ rpm-installed count [OPTION]
 rpm-installed since DATE [until DATE]
 rpm-installed package NAME
 rpm-installed package PATTERN
+rpm-installed --time | -t     # add to any date-based query, any position
 rpm-installed --refresh
 rpm-installed --help
 ```
@@ -172,6 +176,20 @@ rpm-installed --help
 | `package PATTERN` | Full install history with glob — e.g. `kern*`, `*lib*` |
 
 Unlike the Fish shell version, glob patterns don't need quoting in Bash, `rpm-installed package kern*` works as-is.
+
+### Time Display
+
+| Flag         | Description                                                          |
+| ------------ | --------------------------------------------------------------------- |
+| `--time`/`-t` | Show install time (HH:MM) next to each package, on any date-based query |
+
+Can be placed anywhere in the arguments:
+
+```bash
+rpm-installed today --time
+rpm-installed -t days 3
+rpm-installed since 2026-07-01 --time
+```
 
 ### Analytics Options
 
@@ -201,6 +219,8 @@ rpm-installed tw                    # This calendar week (Mon → today)
 rpm-installed lw                    # Last week
 rpm-installed days 3                # Last 3 days (rolling window, today included)
 rpm-installed days 14               # Last 14 days
+rpm-installed today --time          # Today's installations, with install time (HH:MM)
+rpm-installed -t days 3             # Last 3 days, with install time
 
 # With counts (no formatting, just statistics)
 rpm-installed count today           # How many packages today?
@@ -351,6 +371,12 @@ bash-rpm-installed/
 ---
 
 ## Changelog
+
+**v3.6.0 – Time Display**
+
+- Added `--time`/`-t` flag: shows install time (HH:MM) next to each package on any date-based query
+- Flag can be placed anywhere in the arguments (e.g. `rpm-installed today --time`, `rpm-installed -t days 3`)
+- Ported from fish-rpm-installed v3.6 — in sync
 
 **v3.5.0 – this-week subcommand**
 
