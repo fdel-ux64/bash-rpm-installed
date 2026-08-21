@@ -17,6 +17,7 @@ __rpm_installed_help() {
 	  rpm-installed since DATE [until DATE]
 	  rpm-installed count [OPTION] (including 'since … until …')
 	  rpm-installed --refresh  # rebuild cache
+	  rpm-installed [OPTION] --time    # show install time (HH:MM) per package
 
 	OPTIONS:
 	  today        Packages installed today
@@ -34,6 +35,14 @@ __rpm_installed_help() {
 	  lw  → last-week
 	  tm  → this-month
 	  lm  → last-month
+
+	TIME DISPLAY:
+	  Add --time (or -t) to any date-based query to show the install
+	  time (HH:MM) next to each package, not just the date it was
+	  installed on. Can be placed anywhere in the arguments.
+	    rpm-installed today --time
+	    rpm-installed -t days 3
+	    rpm-installed since 2026-07-01 --time
 
 	COUNT / STATS:
 	  rpm-installed count today
@@ -57,9 +66,10 @@ __instlist_rpm() {
 }
 
 __display_rpm_packages() {
-    local cache_status="$1"
-    local title="$2"
-    shift 2
+    local show_time="$1"
+    local cache_status="$2"
+    local title="$3"
+    shift 3
     local -a packages=("$@")
     local pkg_count=${#packages[@]}
 
@@ -75,10 +85,9 @@ __display_rpm_packages() {
     local tmpfile
     tmpfile=$(mktemp /tmp/rpm_installed.XXXXXX)
 
-    # Build two parallel arrays: dates and names
-    local -a dates=()
-    local -a names=()
-    local ts name day
+    # Build parallel arrays: dates, times (if requested), and names
+    local -a dates=() times=() names=()
+    local ts name day hm
 
     for pkg in "${packages[@]}"; do
         ts="${pkg%% *}"
@@ -87,6 +96,11 @@ __display_rpm_packages() {
         [[ -z "$day" ]] && day="unknown"
         dates+=("$day")
         names+=("$name")
+        if [[ "$show_time" == 1 ]]; then
+            hm=$(LC_ALL=en_US.UTF-8 date -d "@$ts" '+%H:%M %Z' 2>/dev/null)
+            [[ -z "$hm" ]] && hm="??:??"
+            times+=("$hm")
+        fi
     done
 
     # Emit grouped output into tmpfile
@@ -112,7 +126,11 @@ __display_rpm_packages() {
                     "$day" "$run" "$( (( run == 1 )) && echo "" || echo "s" )"
             fi
 
-            printf "    %s\n" "$name"
+            if [[ "$show_time" == 1 ]]; then
+                printf "    %s  %s\n" "${times[$i]}" "$name"
+            else
+                printf "    %s\n" "$name"
+            fi
         done
 
         printf "\n ────────────────────────────────────\n"
@@ -225,6 +243,22 @@ rpm-installed() {
         echo "   Current system does not appear to be RPM-based"
         return 1
     fi
+
+    # ---- Extract --time / -t flag from anywhere in the arguments ----
+    # Strip it before any positional parsing so downstream logic (which
+    # relies on positional indices, e.g. 'days N', 'on DATE') is unaffected
+    # regardless of where the user places the flag.
+    local show_time=0
+    local -a __rpm_filtered_args=()
+    local __rpm_arg_lc
+    for a in "$@"; do
+        __rpm_arg_lc=$(echo "$a" | tr '[:upper:]' '[:lower:]')
+        case "$__rpm_arg_lc" in
+            --time|-t) show_time=1 ;;
+            *) __rpm_filtered_args+=("$a") ;;
+        esac
+    done
+    set -- "${__rpm_filtered_args[@]}"
 
     local arg="${1:-}"
     [[ -n "$arg" ]] && arg=$(echo "$arg" | tr '[:upper:]' '[:lower:]')
@@ -494,7 +528,7 @@ rpm-installed() {
         done < <(awk -v s="$s" -v e="$e" '$1>=s && (e=="" || $1<e)' \
                      "$RPM_INSTALLED_CACHE_FILE" | sort -n)
 
-        __display_rpm_packages "file cache" "$heading" "${result[@]}"
+        __display_rpm_packages "$show_time" "file cache" "$heading" "${result[@]}"
     fi
 }
 
